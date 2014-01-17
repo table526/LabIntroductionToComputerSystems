@@ -1,7 +1,7 @@
 /* 
  * CS:APP Data Lab 
  * 
- * <Please put your name and userid here>
+ * <Name: Qichen Pan	AndrewId: pqichen>
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
@@ -138,7 +138,10 @@ NOTES:
  *   Rating: 1
  */
 int evenBits(void) {
-  return 2;
+  /* Concatenate four "0101" together */
+	int var = 0x55;  
+  int result = (var << 24) + (var << 16) + (var << 8) + var;
+  return result;
 }
 /* 
  * isEqual - return 1 if x == y, and 0 otherwise 
@@ -148,7 +151,9 @@ int evenBits(void) {
  *   Rating: 2
  */
 int isEqual(int x, int y) {
-  return 2;
+  /* return the ban value of x xor y */
+	int result = !(x ^ y);
+	return result;
 }
 /* 
  * byteSwap - swaps the nth byte and the mth byte
@@ -160,7 +165,20 @@ int isEqual(int x, int y) {
  *  Rating: 2
  */
 int byteSwap(int x, int n, int m) {
-    return 2;
+	/* Step 1: get the actual postions of nth and mth bytes.
+		 Step 2: get the actual values of nth and mth bytes.
+		 Step 3: erase nth byte and add mth byte to that position.
+		 Step 4: erase mth byte and add nth byte to that position.*/
+	int nOffset = n << 3;
+	int mOffset = m << 3;
+	int allones = 0xff;
+	int nthByte = (x & (allones << nOffset)) >> nOffset & allones;
+	int mthByte = (x & (allones << mOffset)) >> mOffset & allones;
+	x = x ^ (nthByte << nOffset);
+	x = x + (mthByte << nOffset);
+	x = x ^ (mthByte << mOffset);
+	x = x + (nthByte << mOffset);
+	return x;
 }
 /* 
  * rotateRight - Rotate x to the right by n
@@ -171,7 +189,15 @@ int byteSwap(int x, int n, int m) {
  *   Rating: 3 
  */
 int rotateRight(int x, int n) {
-  return 2;
+	/* Step 1: get the right most bits that are rotated.
+		 Step 2: right shift x by n bits.
+		 Step 3: make left most n bits to be 0s.
+		 Step 4: add rotated bits to the left most positions.*/
+	int maskOnes = (1 << n) + ~1 + 1;
+	int rotatedPart = x & maskOnes;
+	int maskZeros = ~(maskOnes << (32 + ~n + 1));
+	int result = ((x >> n) & maskZeros) + (rotatedPart << (32 + ~n + 1));
+	return result;
 }
 /* 
  * logicalNeg - implement the ! operator, using all of 
@@ -265,7 +291,7 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned float_half(unsigned uf) {
-  return 2;
+	return 2;
 }
 /* 
  * float_f2i - Return bit-level equivalent of expression (int) f
