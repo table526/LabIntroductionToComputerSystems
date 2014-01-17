@@ -189,10 +189,12 @@ int byteSwap(int x, int n, int m) {
  *   Rating: 3 
  */
 int rotateRight(int x, int n) {
-	/* Step 1: get the right most bits that are rotated.
-		 Step 2: right shift x by n bits.
-		 Step 3: make left most n bits to be 0s.
-		 Step 4: add rotated bits to the left most positions.*/
+	/* 
+	 * Step 1: get the right most bits that are rotated.
+	 * Step 2: right shift x by n bits.
+	 * Step 3: make left most n bits to be 0s.
+	 * Step 4: add rotated bits to the left most positions.
+	 * */
 	int maskOnes = (1 << n) + ~1 + 1;
 	int rotatedPart = x & maskOnes;
 	int maskZeros = ~(maskOnes << (32 + ~n + 1));
@@ -208,7 +210,15 @@ int rotateRight(int x, int n) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  /* 
+	 * Step 1: get the inverse number of x.
+	 * Step 2: get the union of most significant bits of x and inverse x.
+	 * Step 3: return 1 - Output from Step 2.
+	 * */
+	int opposite = ~x + 1;
+	int flag = (1 & (x >> 31)) | (1 & (opposite >> 31));
+	int result = 1 + ~flag + 1;
+	return result;
 }
 /* 
  * TMax - return maximum two's complement integer 
@@ -217,7 +227,9 @@ int logicalNeg(int x) {
  *   Rating: 1
  */
 int tmax(void) {
-  return 2;
+	/* Get 0x7fffffff */
+  int result = ~(1 << 31);
+	return result;
 }
 /* 
  * sign - return 1 if positive, 0 if zero, and -1 if negative
@@ -228,7 +240,13 @@ int tmax(void) {
  *  Rating: 2
  */
 int sign(int x) {
-    return 2;
+	/*
+	 * Step 1: use '!' to distinct 0 from other integers
+	 * Step 2: use left most bit to distinct positive numbers from negtive numbers
+	 * */				
+  int flag = !!x;
+  int result = ((x >> 30) & (~1)) + flag;
+	return result;
 }
 /* 
  * isGreater - if x > y  then return 1, else return 0 
@@ -308,3 +326,4 @@ unsigned float_half(unsigned uf) {
 int float_f2i(unsigned uf) {
   return 2;
 }
+
