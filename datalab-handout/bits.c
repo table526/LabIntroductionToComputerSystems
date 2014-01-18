@@ -256,7 +256,19 @@ int sign(int x) {
  *   Rating: 3
  */
 int isGreater(int x, int y) {
-  return 2;
+	/*
+	 * Step 1: diff is the value of x - y.
+	 * Step 2: mask is: 1 when x is positive and y is negative;
+	 										0xffffffff when x is negative and y is positive;
+											0 otherwise.
+	 * Step 3: flag represents diff is positive or not.
+	 * Step 4: !!diff can be used to see if diff is 0.
+	 */
+	int diff = x + ~y + 1;
+  int mask = (x >> 31) - (y >> 31);
+	int flag = (diff >> 31) + 1;
+	int result = (!!diff) & (((mask | flag) + 1) >> 1);
+	return result;
 }
 /* 
  * subOK - Determine if can compute x-y without overflow
@@ -267,7 +279,11 @@ int isGreater(int x, int y) {
  *   Rating: 3
  */
 int subOK(int x, int y) {
-  return 2;
+  int mask = (x >> 31) - (y >> 31);
+	int diff = x + ~y + 1;
+	int flag = (diff >> 31) + 1;
+	int result = !(mask & (((mask + 1) >> 1) ^ flag));
+	return result;
 }
 /*
  * satAdd - adds two numbers but when positive overflow occurs, returns
@@ -280,7 +296,13 @@ int subOK(int x, int y) {
  *   Rating: 4
  */
 int satAdd(int x, int y) {
-  return 2;
+	int sum = x + y; 
+	int SignX = (x >> 31) & 1;
+	int SignY = (y >> 31) & 1;
+	int SignSum = (sum >> 31) & 1;
+	int flag = (((!(SignX ^ SignY)) & (SignX ^ SignSum)) << 31) >> 31;
+	int result = ((~flag) & sum) + (flag & ((~(1 << 31)) + SignX));
+	return result;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
