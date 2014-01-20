@@ -296,6 +296,11 @@ int subOK(int x, int y) {
  *   Rating: 4
  */
 int satAdd(int x, int y) {
+	/*
+	 * Step 1: use flag to record overflow behavior.
+	 * Step 2: flag can be used as a weight of origin sum and overflow value.
+	 * Step 3: return weighted sum of origin result and maxPos or minNeg.
+	 */
 	int sum = x + y; 
 	int SignX = (x >> 31) & 1;
 	int SignY = (y >> 31) & 1;
@@ -317,7 +322,41 @@ int satAdd(int x, int y) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+	int sign = x >> 31;
+	int positiveX = ((~sign) & x) + (sign & ((~x) + 1));
+  int tmp = positiveX >> 16;
+	int flag = ((!!(tmp)) << 31) >> 31;
+	int result = 1 + (flag & 0x10);
+	int remain = (flag & tmp) + ((~flag) & (positiveX));
+
+	//printf("remain: %d\tresult: %d\n", remain, result);
+	tmp = remain >> 8;
+	flag = ((!!(tmp)) << 31) >> 31;
+	result = result + (flag & 0x08);
+	remain = (flag & tmp) + ((~flag) & remain);
+	//printf("remain: %d\tresult: %d\n", remain, result);
+
+	tmp = remain >> 4;
+	flag = ((!!(tmp)) << 31) >> 31;
+	result = result + (flag & 0x04);
+	remain = (flag & tmp) + ((~flag) & remain);
+	//printf("remain: %d\tresult: %d\n", remain, result);
+
+	tmp = remain >> 2;
+	flag = ((!!(tmp)) << 31) >> 31;
+	result = result + (flag & 0x02);
+	remain = (flag & tmp) + ((~flag) & remain);
+	//printf("remain: %d\tresult: %d\n", remain, result);
+	
+	tmp = remain >> 1;
+	flag = ((!!(tmp)) << 31) >> 31;
+	result = result + (flag & 0x01);
+	remain = (flag & tmp) + ((~flag) & remain);
+	//printf("remain: %d\tresult: %d\n", remain, result);
+
+	result = result + (~(result >> 5)) + 1;
+  result = result + (!!x) + (!!(~x)) + (~0);
+	return result;
 }
 /* 
  * float_half - Return bit-level equivalent of expression 0.5*f for
