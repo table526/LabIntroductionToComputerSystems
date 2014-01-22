@@ -419,6 +419,22 @@ unsigned float_half(unsigned uf) {
  *   Rating: 4
  */
 int float_f2i(unsigned uf) {
-  return 2;
+  unsigned result;
+	unsigned sign = uf >> 31;
+	unsigned exp = (uf & 0x7f800000) >> 23;
+	unsigned frac = (uf & 0x007fffff);
+	unsigned real_frac = 0x01;
+	int i = 0;
+	while(i < 23)
+	{
+		i = i + 1;
+		real_frac = real_frac + (2 ^ (-i)) * ((frac << 1) & 0x80000000);
+	}
+	if(exp == 0x00)
+	{
+		real_frac = real_frac - 1;
+	}
+	result = (-1) ^ (0 - sign) * (2 ^ (exp - 127)) * real_frac;
+	return result;
 }
 
