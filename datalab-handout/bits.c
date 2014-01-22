@@ -322,37 +322,38 @@ int satAdd(int x, int y) {
  *  Rating: 4
  */
 int howManyBits(int x) {
+	/*
+	 * Step 1: Convert negative number x to ~x. remain nonnegative number.
+	 * Step 2: Judge if left-most 16bits are all 0s. If yes, result += 16, pick the left 16 bits for further calculation. Otherwise, pick the right 16bits for further calculation.
+	 * Step 3: repeat doing step 2 but change the number to 8bits, 4bits, 2bits, and 1bit.
+	 * Step 4: return result.
+	 */
 	int sign = x >> 31;
-	int positiveX = ((~sign) & x) + (sign & ((~x) + 1));
-  int tmp = positiveX >> 16;
+	int reverseX = ((~sign) & x) + (sign & (~x));
+  int tmp = reverseX >> 16;
 	int flag = ((!!(tmp)) << 31) >> 31;
 	int result = 1 + (flag & 0x10);
-	int remain = (flag & tmp) + ((~flag) & (positiveX));
+	int remain = (flag & tmp) + ((~flag) & (reverseX));
 
-	//printf("remain: %d\tresult: %d\n", remain, result);
 	tmp = remain >> 8;
 	flag = ((!!(tmp)) << 31) >> 31;
 	result = result + (flag & 0x08);
 	remain = (flag & tmp) + ((~flag) & remain);
-	//printf("remain: %d\tresult: %d\n", remain, result);
 
 	tmp = remain >> 4;
 	flag = ((!!(tmp)) << 31) >> 31;
 	result = result + (flag & 0x04);
 	remain = (flag & tmp) + ((~flag) & remain);
-	//printf("remain: %d\tresult: %d\n", remain, result);
 
 	tmp = remain >> 2;
 	flag = ((!!(tmp)) << 31) >> 31;
 	result = result + (flag & 0x02);
 	remain = (flag & tmp) + ((~flag) & remain);
-	//printf("remain: %d\tresult: %d\n", remain, result);
 	
 	tmp = remain >> 1;
 	flag = ((!!(tmp)) << 31) >> 31;
 	result = result + (flag & 0x01);
 	remain = (flag & tmp) + ((~flag) & remain);
-	//printf("remain: %d\tresult: %d\n", remain, result);
 
 	result = result + (~(result >> 5)) + 1;
   result = result + (!!x) + (!!(~x)) + (~0);
@@ -370,7 +371,30 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned float_half(unsigned uf) {
-	return 2;
+	unsigned result;
+	unsigned exp = (uf & 0x7f800000) >> 23;
+	unsigned frac = (uf & 0x007fffff);
+	//printf("exp: %u\nfrac: %u\n",exp,frac);
+	if(exp == 0x00 || exp == 0x01)
+	{
+		if(exp == 0x01)
+		{
+			frac = 0x400000 + (frac >> 1);
+		}else if(frac == 0x01){
+			frac = 0x00;
+		}else{
+			frac = (frac + 1) >> 1;
+		}
+		result = (uf & 0x80000000) + frac;
+	}else if(exp == 0xff)
+	{
+		return uf;
+	}else{
+		exp = exp - 1;
+		result = (uf & 0x807fffff) + (exp << 23);
+	}
+	//printf("result: %u\n", result);
+	return result;
 }
 /* 
  * float_f2i - Return bit-level equivalent of expression (int) f
