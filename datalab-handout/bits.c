@@ -371,19 +371,29 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned float_half(unsigned uf) {
+	/*
+	 * Step 1: Get exp part, fraction part, and round part(last 2-bits).
+	 * Step 2: if exp == 0x00, right shift frac by 1 bit, do rounding.
+	 * Step 3: if exp == 0x01, right shift frac by 1 bit, do rounding, plus 0x400000.
+	 * Step 4: otherwise, exp--.
+	 */
 	unsigned result;
 	unsigned exp = (uf & 0x7f800000) >> 23;
 	unsigned frac = (uf & 0x007fffff);
+	unsigned round = frac & 0x03;
 	//printf("exp: %u\nfrac: %u\n",exp,frac);
 	if(exp == 0x00 || exp == 0x01)
 	{
+		if(round == 0x03)
+		{
+			frac = (frac >> 1) + 1;
+		}else
+		{
+			frac = frac >> 1;
+		}
 		if(exp == 0x01)
 		{
-			frac = 0x400000 + (frac >> 1);
-		}else if(frac == 0x01){
-			frac = 0x00;
-		}else{
-			frac = (frac + 1) >> 1;
+			frac = 0x400000 + frac;
 		}
 		result = (uf & 0x80000000) + frac;
 	}else if(exp == 0xff)
