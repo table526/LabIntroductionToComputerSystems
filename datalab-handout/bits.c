@@ -139,9 +139,10 @@ NOTES:
  */
 int evenBits(void) {
   /* Concatenate four "0101" together */
-	int var = 0x55;  
-  int result = (var << 24) + (var << 16) + (var << 8) + var;
-  return result;
+	int fourbits = 0x55; 
+	int eightbits = (fourbits << 8) + fourbits;
+  int result = (eightbits << 16) + (eightbits);
+	return result;
 }
 /* 
  * isEqual - return 1 if x == y, and 0 otherwise 
@@ -265,7 +266,7 @@ int isGreater(int x, int y) {
 	 * Step 4: !!diff can be used to see if diff is 0.
 	 */
 	int diff = x + ~y + 1;
-  int mask = (x >> 31) - (y >> 31);
+  int mask = (x >> 31) + ~(y >> 31) + 1;
 	int flag = (diff >> 31) + 1;
 	int result = (!!diff) & (((mask | flag) + 1) >> 1);
 	return result;
@@ -279,7 +280,7 @@ int isGreater(int x, int y) {
  *   Rating: 3
  */
 int subOK(int x, int y) {
-  int mask = (x >> 31) - (y >> 31);
+  int mask = (x >> 31) + ~(y >> 31) + 1;
 	int diff = x + ~y + 1;
 	int flag = (diff >> 31) + 1;
 	int result = !(mask & (((mask + 1) >> 1) ^ flag));
@@ -419,22 +420,44 @@ unsigned float_half(unsigned uf) {
  *   Rating: 4
  */
 int float_f2i(unsigned uf) {
-  unsigned result;
+  /*
+	 * Step 1: get sign, exp, frac parts respectively.
+	 * Step 2: calculate the actual offset that frac needs to be shifted.
+	 * Step 3: take overflow into consideration.
+	 */
+	unsigned result;
 	unsigned sign = uf >> 31;
 	unsigned exp = (uf & 0x7f800000) >> 23;
 	unsigned frac = (uf & 0x007fffff);
-	unsigned real_frac = 0x01;
-	int i = 0;
-	while(i < 23)
+	unsigned offset = exp - 150;
+	unsigned offset_sign = offset >> 31;
+	if(exp != 0x00)
 	{
-		i = i + 1;
-		real_frac = real_frac + (2 ^ (-i)) * ((frac << 1) & 0x80000000);
+		frac = frac | 0x00800000;				
 	}
-	if(exp == 0x00)
+	if(offset_sign == 0)
 	{
-		real_frac = real_frac - 1;
+		if(offset < 8)
+		{
+			result = frac << offset;
+		}else
+		{
+			result = 0x80000000;
+		}
+	}else 
+	{
+		if(((~offset) + 1) < 24)
+		{
+			result = frac >> ((~offset) + 1);				
+		}else
+		{
+			result = 0x00;
+		}
 	}
-	result = (-1) ^ (0 - sign) * (2 ^ (exp - 127)) * real_frac;
+	if(sign == 0x01)
+	{
+		result = ~result + 1;
+	}
 	return result;
 }
 
